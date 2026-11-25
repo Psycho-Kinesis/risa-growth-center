@@ -12,7 +12,7 @@ A working command center for growing **attendance** at a two-day college festiva
 | Deliverable | Where |
 |---|---|
 | Three-slide strategy (PDF) | submitted separately (exported from the deck) |
-| Working product | `https://<your-app>.vercel.app` (see [Deploy](#deploy-in-about-15-minutes)) |
+| Working product | **https://risa-growth-center-virid.vercel.app** (to run your own copy, see [Deploy](#deploy-in-about-15-minutes)) |
 | Slide 1 model with live formulas | spreadsheet export, mirrored by `analysis/slide1_model.py` |
 | This README | research, assumptions, calculations, framework, setup, tools, limitations |
 
