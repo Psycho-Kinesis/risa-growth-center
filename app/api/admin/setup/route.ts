@@ -11,8 +11,8 @@ export async function GET() {
 
 /**
  * POST { token, action: "init" | "reset" }
- *  init  — create/upgrade schema; load the original data if the tables are empty.
- *          On an EMPTY database no token is needed (first-time setup can't destroy anything).
+ *  init  — create/upgrade schema (idempotent: views, functions, missing assumptions, ANALYZE);
+ *          load the original data only if the tables are empty. Never deletes data, so no token is needed.
  *  reset — create/upgrade schema and reload the ORIGINAL data (rows added in the app are removed; tasks are kept).
  *          Always needs ADMIN_TOKEN.
  */
@@ -23,8 +23,8 @@ export async function POST(req: Request) {
     const before = await dbStatus();
     const empty = !before.schema || !before.rows["src_checkins"];
     const tokenOk = !!expected && b.token === expected;
-    if (!tokenOk && !(b.action === "init" && empty)) {
-      throw new InputError(expected ? "Wrong admin token." : "ADMIN_TOKEN is not set on the server, so only first-time setup is allowed.");
+    if (!tokenOk && b.action !== "init") {
+      throw new InputError(expected ? "Wrong admin token." : "ADMIN_TOKEN is not set on the server, so only Initialise (non-destructive) is allowed.");
     }
     await runSchema();
     if (b.action === "reset" || empty) {

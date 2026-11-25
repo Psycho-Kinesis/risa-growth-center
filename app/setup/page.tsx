@@ -37,11 +37,11 @@ export default function Setup() {
             {status.schema && Object.entries(status.rows || {}).map(([k, v]) => <li key={k}>{k}: {Number(v).toLocaleString("en-IN")} rows</li>)}
           </ul>
         )}
-        <label className="form">Admin token (the ADMIN_TOKEN environment variable; not needed for the first initialise)
+        <label className="form">Admin token (the ADMIN_TOKEN environment variable; only needed to reset)
           <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="ADMIN_TOKEN" />
         </label>
         <div className="row-btns">
-          <button className="primary" disabled={!!busy || (!token && !!status?.rows?.src_checkins)} onClick={() => act("init")}>{busy === "init" ? "Working…" : "Initialise database"}</button>
+          <button className="primary" disabled={!!busy} onClick={() => act("init")}>{busy === "init" ? "Working…" : "Initialise database"}</button>
           <button className="ghost danger" disabled={!token || !!busy} onClick={() => act("reset")}>{busy === "reset" ? "Working…" : "Reset to original data"}</button>
         </div>
         <h2>AI analyst</h2>

@@ -93,17 +93,17 @@ language sql stable as $$
       and c.occurred_at < f_cutoff(p_as_of)
     group by c.person_id
   )
+  , fr as (  -- earliest registration per person by the cutoff (set-based: fast without table statistics)
+    select distinct on (r.person_id) r.person_id, r.registration_id, r.campaign_id
+    from v_registrations r
+    where r.registered_at < f_cutoff(p_as_of)
+    order by r.person_id, r.registered_at asc, r.registration_id asc
+  )
   select a.person_id, p.person_type, a.first_admitted_at, a.admission_events,
-         r.registration_id, r.campaign_id, (r.registration_id is null)
+         fr.registration_id, fr.campaign_id, (fr.registration_id is null)
   from adm a
   left join v_people p on p.person_id = a.person_id
-  left join lateral (
-    select r.registration_id, r.campaign_id
-    from v_registrations r
-    where r.person_id = a.person_id and r.registered_at < f_cutoff(p_as_of)
-    order by r.registered_at asc, r.registration_id asc
-    limit 1
-  ) r on true
+  left join fr on fr.person_id = a.person_id
 $$;
 
 -- ---------------------------------------------------------------------
@@ -497,13 +497,15 @@ language sql stable as $$
            count(*) filter (where f_ist_date(first_at) > p_as_of - 14 and c.channel = 'referrals') ref14
     from first_reg fr left join src_campaigns c on c.campaign_id = fr.campaign_id
   ),
+  engaged_people as (
+    select distinct i.person_id from v_lead_interactions i
+    where i.occurred_at < (select c from co)
+      and i.event_type in ('brochure_download','event_question_submitted','nurture_email_clicked')
+  ),
   eng as (
     select count(distinct r.person_id) regs,
-           count(distinct r.person_id) filter (where exists (
-             select 1 from v_lead_interactions i
-             where i.person_id = r.person_id and i.occurred_at < (select c from co)
-               and i.event_type in ('brochure_download','event_question_submitted','nurture_email_clicked'))) engaged
-    from reg r
+           count(distinct r.person_id) filter (where e.person_id is not null) engaged
+    from reg r left join engaged_people e on e.person_id = r.person_id
   ),
   oo as (
     select count(distinct i.person_id) filter (where i.event_type = 'opted_out') opted,

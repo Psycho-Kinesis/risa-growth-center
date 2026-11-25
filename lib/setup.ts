@@ -26,6 +26,7 @@ export async function runSchema() {
     const sql = fs.readFileSync(path.join(root(), "db", f), "utf8");
     await pool.query(sql);
   }
+  await pool.query("analyze"); // fresh planner statistics: keeps the metric functions fast
   return { ran: SQL_FILES };
 }
 
@@ -82,6 +83,7 @@ export async function loadSource({ reset }: { reset: boolean }) {
   } finally {
     client.release();
   }
+  await getPool().query("analyze"); // statistics for the freshly loaded rows
   return { loaded };
 }
 
