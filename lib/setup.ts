@@ -20,11 +20,34 @@ function root() {
   return process.cwd();
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Run one SQL file in its own transaction; wait at most 15 s for locks and retry on deadlock. */
+async function runFile(sql: string) {
+  const pool = getPool();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await pool.query(`begin;\nset local lock_timeout = '15s';\n${sql}\n;commit;`);
+      return;
+    } catch (e) {
+      const code = (e as { code?: string }).code;
+      // 40P01 deadlock, 55P03 lock timeout: someone is reading the views right now; try again shortly
+      if ((code === "40P01" || code === "55P03") && attempt < 4) {
+        await sleep(2000 * attempt);
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
 export async function runSchema() {
   const pool = getPool();
+  const exists = await pool.query(`select to_regclass('public.src_checkins') is not null as ok`);
+  // statistics first, so any query running alongside the upgrade gets a good plan
+  if (exists.rows[0].ok) await pool.query("analyze");
   for (const f of SQL_FILES) {
-    const sql = fs.readFileSync(path.join(root(), "db", f), "utf8");
-    await pool.query(sql);
+    await runFile(fs.readFileSync(path.join(root(), "db", f), "utf8"));
   }
   await pool.query("analyze"); // fresh planner statistics: keeps the metric functions fast
   return { ran: SQL_FILES };

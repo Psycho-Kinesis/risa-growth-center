@@ -36,7 +36,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const asOf = params.get("asOf") || latest;
 
   useEffect(() => {
-    api("/api/dashboard").then((d) => { setLatest(d.asOf); setEvent(d.event); }).catch(() => setLatest("2025-04-20"));
+    api("/api/meta").then((d) => { setLatest(d.asOf); setEvent(d.event); }).catch(() => setLatest("2025-04-20"));
   }, []);
 
   const setAsOf = useCallback((d: string) => {
@@ -77,7 +77,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="asof-note">
         Showing the state at the end of <b>{asOf ? longDate(asOf) : "…"}</b> (IST). Nothing dated later is counted.
       </div>
-      <main className={chatOpen ? "main with-chat" : "main"}>{asOf ? children : <div className="loading">Loading…</div>}</main>
+      <main className={chatOpen ? "main with-chat" : "main"}>{asOf || pathname === "/setup" ? children : <div className="loading">Loading…</div>}</main>
       <button className="chat-fab" onClick={() => setChatOpen((o) => !o)} aria-expanded={chatOpen}>
         {chatOpen ? "Close analyst" : "✦ Ask the AI analyst"}
       </button>
