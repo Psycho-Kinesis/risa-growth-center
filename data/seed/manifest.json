@@ -1,0 +1,47 @@
+[
+ {
+  "table": "src_event",
+  "sheet": "Event",
+  "rows": 1
+ },
+ {
+  "table": "src_targets",
+  "sheet": "Targets",
+  "rows": 2
+ },
+ {
+  "table": "src_campaigns",
+  "sheet": "Campaigns",
+  "rows": 7
+ },
+ {
+  "table": "src_campaign_daily",
+  "sheet": "Daily Marketing",
+  "rows": 483
+ },
+ {
+  "table": "src_people",
+  "sheet": "People",
+  "rows": 3685
+ },
+ {
+  "table": "src_lead_interactions",
+  "sheet": "Interest and Engagement",
+  "rows": 11650
+ },
+ {
+  "table": "src_registrations",
+  "sheet": "Registrations",
+  "rows": 2840
+ },
+ {
+  "table": "src_registration_history",
+  "sheet": "Registration History",
+  "rows": 5911
+ },
+ {
+  "table": "src_checkins",
+  "sheet": "Check-ins",
+  "rows": 3390
+ }
+]

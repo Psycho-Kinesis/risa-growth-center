@@ -1,0 +1,33 @@
+{
+  "name": "campusfest-growth-center",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Attendee growth command center: analytics dashboard, campaign & task management, and an embedded AI growth analyst.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:setup": "tsx scripts/setup-db.ts",
+    "db:reset": "tsx scripts/setup-db.ts --reset",
+    "test:copilot": "tsx tests/copilot-tools.test.ts",
+    "test:api": "tsx tests/api-flows.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.10",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}
