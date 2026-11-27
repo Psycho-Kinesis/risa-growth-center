@@ -212,7 +212,7 @@ Screenshots: [`docs/screenshots/`](docs/screenshots/) (Overview as of 20 Mar and
 The **As of** picker in the header (with presets: launch +3 weeks, goal revised, mid-campaign, day before the fest, final) re-computes everything for that date.
 
 ### AI analyst: design
-- **Model:** Gemini via the REST `generateContent` API with function calling. The default model is `gemini-flash-latest`, Google's auto-updating alias; override it with `GEMINI_MODEL`. No deprecated sampling parameters are sent. Each model turn is sent back unchanged, so **thought signatures** are preserved and function responses carry the call `id`, as the API requires.
+- **Model:** Gemini via the REST `generateContent` API with function calling. The default model is `gemini-2.5-flash`. If Google reports it busy, rate-limited or slow, the app moves to `gemini-flash-latest`, then `gemini-flash-lite-latest` (change with `GEMINI_MODEL` and `GEMINI_FALLBACK_MODELS`). A conversation stays on the model that first answered, and every request has a time limit. No deprecated sampling parameters are sent. Each model turn is sent back unchanged, so **thought signatures** are preserved and function responses carry the call `id`, as the API requires.
 - **15 tools** (`lib/copilot/tools.ts`):
   - **Read:** `get_overview`, `get_campaign_performance`, `get_campaign_signals`, `get_leading_indicators`, `get_funnel`, `get_daily_trend`, `get_projection`, `compare_dates`, `get_targets_and_assumptions`, `list_campaigns`, `list_tasks`.
   - **Ad-hoc:** `query_data` (one read-only SQL query over documented views).
@@ -279,7 +279,7 @@ You need three free accounts: **Supabase** (database), **Google AI Studio** (Gem
    - `DATABASE_URL`: from step 1
    - `GEMINI_API_KEY`: from step 2
    - `ADMIN_TOKEN`: any long random string
-   - `GEMINI_MODEL` (optional): defaults to `gemini-flash-latest`
+   - `GEMINI_MODEL` (optional): defaults to `gemini-2.5-flash`; `GEMINI_FALLBACK_MODELS` (optional): defaults to `gemini-flash-latest,gemini-flash-lite-latest`
 
    Then press **Deploy**.
 4. **Initialise.** Open `https://<your-app>.vercel.app/setup`, enter the `ADMIN_TOKEN` and press **Initialise database**. This creates the schema and loads the original 27,969 rows. Then press **Test AI connection**; it should show "Gemini replied".
@@ -306,6 +306,7 @@ npm run dev                       # http://localhost:3000
 
 ```bash
 DATABASE_URL=... npm run test:copilot                                   # 23 tests: tools on live data, SQL guard, calculator, agent loop
+DATABASE_URL=... npm run test:gemini                                    # 9 tests: model fallback, time limits, one model per conversation (mocked network)
 BASE_URL=http://localhost:3000 DATABASE_URL=... ADMIN_TOKEN=... npm run test:api   # 13 end-to-end edit → analytics flows
 python analysis/crosscheck_sql_vs_pandas.py "data/source/Attendee Dataset.xlsx"  # SQL vs pandas, 8 dates
 psql "$DATABASE_URL" -f analysis/test_changed_data.sql                  # 9 changed-data tests (rolled back)
@@ -331,7 +332,7 @@ psql "$DATABASE_URL" -f analysis/test_changed_data.sql                  # 9 chan
 | Recharts | open source | charts |
 | node-postgres (`pg`) | open source | database access |
 | PostgreSQL on Supabase | Free | database (SQL functions do the analytics) |
-| Google Gemini API (`gemini-flash-latest`) | Free tier | AI analyst |
+| Google Gemini API (`gemini-2.5-flash`, with fallbacks) | Free tier | AI analyst |
 | Vercel | Hobby | hosting |
 | Python, pandas, Playwright | open source | independent verification, screenshots |
 

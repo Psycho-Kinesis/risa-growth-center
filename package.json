@@ -10,7 +10,8 @@
     "db:setup": "tsx scripts/setup-db.ts",
     "db:reset": "tsx scripts/setup-db.ts --reset",
     "test:copilot": "tsx tests/copilot-tools.test.ts",
-    "test:api": "tsx tests/api-flows.test.ts"
+    "test:api": "tsx tests/api-flows.test.ts",
+    "test:gemini": "tsx tests/gemini-fallback.test.ts"
   },
   "engines": {
     "node": ">=20"

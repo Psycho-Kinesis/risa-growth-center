@@ -50,9 +50,9 @@ export default function Setup() {
           <ul className="small">
             {health.checking && <li>Checking…</li>}
             {health.error && <li className="alert-text">{health.error}</li>}
-            {"ai_key_set" in health && <li>GEMINI_API_KEY: {health.ai_key_set ? "✓ set" : "✗ not set"} · model: <code>{health.model}</code></li>}
+            {"ai_key_set" in health && <li>GEMINI_API_KEY: {health.ai_key_set ? "✓ set" : "✗ not set"} · models: <code>{health.model}</code></li>}
             {health.ai_probe && <li>{health.ai_probe.ok ? `✓ Google reachable, key valid (${health.ai_probe.ms} ms)` : <span className="alert-text">✗ Key check: {health.ai_probe.error}</span>}</li>}
-            {health.ai && <li>{health.ai.ok ? `✓ Gemini replied: "${health.ai.reply}" (${health.ai.ms} ms)` : <span className="alert-text">✗ {health.ai.error}</span>}</li>}
+            {health.ai && <li>{health.ai.ok ? `✓ ${health.ai.model} replied: "${health.ai.reply}" (${health.ai.ms} ms)` : <span className="alert-text">✗ {health.ai.error}</span>}</li>}
           </ul>
         )}
         <p className="small muted">When everything shows ✓, open the <a href="/">Overview</a>.</p>
