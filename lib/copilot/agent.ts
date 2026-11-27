@@ -10,7 +10,7 @@ type Part = {
   functionResponse?: { name: string; id?: string; response: Record<string, unknown> };
 };
 type Content = { role: "user" | "model"; parts: Part[] };
-export type GenerateFn = (body: Record<string, unknown>) => Promise<{
+export type GenerateFn = (body: Record<string, unknown>, opts?: { timeoutMs?: number }) => Promise<{
   candidates?: { content?: Content; finishReason?: string }[];
   promptFeedback?: { blockReason?: string };
 }>;
@@ -27,17 +27,32 @@ export class LlmError extends Error {
 
 const MODEL = () => process.env.GEMINI_MODEL || "gemini-flash-latest";
 
-/** Calls the Gemini generateContent REST endpoint, with one retry on rate limits / overload. */
-export const geminiGenerate: GenerateFn = async (body) => {
+const DEFAULT_TIMEOUT_MS = () => Number(process.env.GEMINI_TIMEOUT_MS) || 25000;
+
+/** Calls the Gemini generateContent REST endpoint, with a time limit and one retry on rate limits / overload. */
+export const geminiGenerate: GenerateFn = async (body, opts) => {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new LlmError(503, "GEMINI_API_KEY is not set on the server, so the AI analyst is offline. Add it in your hosting settings.");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL())}:generateContent`;
+  const timeoutMs = opts?.timeoutMs ?? DEFAULT_TIMEOUT_MS();
   for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify(body),
-    });
+    const started = Date.now();
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+    } catch (e) {
+      const err = e as Error;
+      console.error(`[gemini] ${MODEL()} request failed after ${Date.now() - started} ms: ${err.name}: ${err.message}`);
+      if (err.name === "TimeoutError" || err.name === "AbortError")
+        throw new LlmError(504, `Gemini (${MODEL()}) did not reply within ${Math.round(timeoutMs / 1000)} s. Try again, or set GEMINI_MODEL to a faster model.`);
+      throw new LlmError(502, `Could not reach Gemini: ${err.message}`);
+    }
+    console.log(`[gemini] ${MODEL()} -> ${res.status} in ${Date.now() - started} ms`);
     if (res.ok) return res.json();
     const text = await res.text();
     if ((res.status === 429 || res.status === 503) && attempt === 0) {
