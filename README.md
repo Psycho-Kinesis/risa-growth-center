@@ -288,6 +288,7 @@ You need three free accounts: **Supabase** (database), **Google AI Studio** (Gem
 The function region is set to Mumbai (`vercel.json`) to sit next to a Mumbai Supabase project; change both together if you pick another region.
 
 **Notes**
+- Environment variables only apply to new deployments. After adding or changing one (for example `GEMINI_API_KEY`), redeploy from the Vercel dashboard or push a commit.
 - Supabase free projects pause after a week without traffic. Open the app shortly before it is reviewed.
 - The free Gemini tier is rate-limited. If you see a rate-limit message, wait a minute.
 
